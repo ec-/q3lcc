@@ -263,7 +263,7 @@ static int callsys(char **av) {
 	}
 	for (i = 0; status == 0 && av[i] != NULL; ) {
 		int j = 0;
-		char *s;
+		char *s = NULL;
 		for ( ; av[i] != NULL && (s = strchr(av[i], '\n')) == NULL; i++)
 			argv[j++] = av[i];
 		if (s != NULL) {

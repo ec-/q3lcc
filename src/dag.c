@@ -529,7 +529,8 @@ void emitcode(void) {
 			       	swtoseg(CODE);
 			       } break;
 		case Switch:   {	int i;
-			       	defglobal(cp->u.swtch.table, LIT);
+					/* emit jump targets in data segment */
+					defglobal( cp->u.swtch.table, DATA );
 			       	(*IR->defaddress)(equated(cp->u.swtch.labels[0]));
 			       	for (i = 1; i < cp->u.swtch.size; i++) {
 			       		long k = cp->u.swtch.values[i-1];

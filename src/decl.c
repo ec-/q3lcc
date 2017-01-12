@@ -267,12 +267,14 @@ static void initglobal(Symbol p, int flag) {
 	Type ty;
 
 	if (t == '=' || flag) {
-		if (p->sclass == STATIC) {
-			for (ty = p->type; isarray(ty); ty = ty->type)
-				;
-			defglobal(p, isconst(ty) ? LIT : DATA);
-		} else
+		/* emit 1-byte array data in LIT segment */
+		for ( ty = p->type; isarray( ty ); ty = ty->type ) ;
+		if ( ty->size == 1 )
+			defglobal( p, LIT );
+		else
 			defglobal(p, DATA);
+		if ( ty->size == 2 )
+			warning( "QVM do not support 16-bit initialized data\n" );
 		if (t == '=')
 			t = gettok();
 		ty = initializer(p->type, 0);
@@ -1055,7 +1057,14 @@ static void doglobal(Symbol p, void *cl) {
 void doconst(Symbol p, void *cl) {
 	if (p->u.c.loc) {
 		assert(p->u.c.loc->u.seg == 0); 
-		defglobal(p->u.c.loc, LIT);
+
+		/* emit char data in lit segment */
+		if ( ( p->type && p->type->type && p->type->type->size == 1 ) 
+			|| ( !isarray(p->type) && p->type->size == 1 ) )
+			defglobal(p->u.c.loc, LIT);
+		else
+			defglobal(p->u.c.loc, DATA);
+
 		if (isarray(p->type) && p->type->type == widechar) {
 			unsigned int *s = p->u.c.v.p;
 			int n = p->type->size/widechar->size;
