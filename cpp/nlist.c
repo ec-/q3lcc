@@ -78,7 +78,7 @@ lookup(Token *tp, int install)
 
 	h = 0;
 	for (cp=tp->t, cpe=cp+tp->len; cp<cpe; )
-		h += *cp++;
+		h = h * 101 + *cp++;
 	h %= NLSIZE;
 	np = nlist[h];
 	while (np) {
