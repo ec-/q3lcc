@@ -129,11 +129,23 @@ static void dumptree(Node p) {
 		if ( !p->count ) { printf("pop\n"); };	// JDC
 		return;
 	case ASGN: case BOR: case BAND: case BXOR: case RSH: case LSH:
-	case ADD: case SUB: case DIV: case MUL: case MOD:
+	case ADD: case SUB: case DIV: case MOD:
 		assert(p->kids[0]);
 		assert(p->kids[1]);
 		dumptree(p->kids[0]);
 		dumptree(p->kids[1]);
+		print("%s\n", opname(p->op));
+		return;
+	case MUL: 
+		/* try to commute - it will reduce max. stack depth 
+		   and will allow more optimizations in our jit compiler */
+		if ( generic(p->kids[0]->op) == CNST && !p->kids[0]->kids[0] && !p->kids[0]->kids[1] ) {
+			dumptree(p->kids[1]);
+			dumptree(p->kids[0]);
+		} else {
+			dumptree(p->kids[0]);
+			dumptree(p->kids[1]);
+		}
 		print("%s\n", opname(p->op));
 		return;
 	case EQ: case NE: case GT: case GE: case LE: case LT:
