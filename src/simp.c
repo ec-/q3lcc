@@ -271,6 +271,8 @@ Tree simplify(int op, Type ty, Tree l, Tree r) {
 			foldcnst(U,u,&);
 			commute(r,l);
 			identity(r,l,U,u,ones(8*ty->size));
+			if ( l->op == COND )
+				warning("The '&' operator is applied to bool type value\n");
 			if (r->op == CNST+U && r->u.v.u == 0)
 				return tree(RIGHT, ty, root(l), cnsttree(ty, 0UL));
 			break;
@@ -278,6 +280,8 @@ Tree simplify(int op, Type ty, Tree l, Tree r) {
 			foldcnst(I,i,&);
 			commute(r,l);
 			identity(r,l,I,i,ones(8*ty->size));
+			if ( l->op == COND )
+				warning("The '&' operator is applied to bool type value\n");
 			if (r->op == CNST+I && r->u.v.u == 0)
 				return tree(RIGHT, ty, root(l), cnsttree(ty, 0L));
 			break;
@@ -376,11 +380,15 @@ Tree simplify(int op, Type ty, Tree l, Tree r) {
 			foldcnst(U,u,|);
 			commute(r,l);
 			identity(r,l,U,u,0);
+			if ( l->op == COND )
+				warning("The '|' operator is applied to bool type value\n");
 			break;
 		case BOR+I:
 			foldcnst(I,i,|);
 			commute(r,l);
 			identity(r,l,I,i,0);
+			if ( l->op == COND )
+				warning("The '|' operator is applied to bool type value\n");
 			break;
 		case BXOR+U:
 			foldcnst(U,u,^);
