@@ -190,6 +190,8 @@ expand(Tokenrow *trp, Nlist *np)
 	else {
 		ntokc = gatherargs(trp, atr, &narg);
 		if (narg<0) {			/* not actually a call (no '(') */
+			if (ntokc<0)		/* fixup */
+				trp->tp++;
 			/* gatherargs has already pushed trp->tr to the next token */
 			return;
 		}
@@ -247,7 +249,7 @@ gatherargs(Tokenrow *trp, Tokenrow **atr, int *narg)
 			if ((trp->lp-1)->type==END) {
 				trp->lp -= 1;
 				trp->tp -= ntok;
-				return ntok;
+				return -1; /* trigger fixup in expand() */
 			}
 		}
 		if (trp->tp->type==LP)
@@ -426,7 +428,8 @@ stringify(Tokenrow *vp)
 	Token *tp;
 	uchar s[STRLEN];
 	uchar *sp = s, *cp;
-	int i, instring;
+	int	instring;
+	unsigned int i; 
 
 	*sp++ = '"';
 	for (tp = vp->bp; tp < vp->lp; tp++) {
