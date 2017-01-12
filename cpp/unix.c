@@ -10,9 +10,10 @@
 #include <share.h>
 #endif
 
-extern	int getopt(int, char *const *, const char *);
+extern int lcc_getopt(int, char *const *, const char *);
 extern	char	*optarg, rcsid[];
 extern	int	optind;
+
 int	verbose;
 int	Mflag;	/* only print active include files */
 char	*objname; /* "src.$O: " */
@@ -25,10 +26,11 @@ setup(int argc, char **argv)
 	FILE *fd;
 	char *fp, *dp;
 	Tokenrow tr;
-	extern void setup_kwtab(void);
+	uchar *includeDirs[ NINCLUDE ] = { 0 };
+	int   numIncludeDirs = 0;
 
 	setup_kwtab();
-	while ((c = getopt(argc, argv, "MNOVv+I:D:U:F:lg")) != -1)
+	while ((c = lcc_getopt(argc, argv, "MNOVv+I:D:U:F:lg")) != -1)
 		switch (c) {
 		case 'N':
 			for (i=0; i<NINCLUDE; i++)
@@ -36,15 +38,7 @@ setup(int argc, char **argv)
 					includelist[i].deleted = 1;
 			break;
 		case 'I':
-			for (i=NINCLUDE-2; i>=0; i--) {
-				if (includelist[i].file==NULL) {
-					includelist[i].always = 1;
-					includelist[i].file = optarg;
-					break;
-				}
-			}
-			if (i<0)
-				error(FATAL, "Too many -I directives");
+			includeDirs[ numIncludeDirs++ ] = newstring( (uchar *)optarg, strlen( optarg ), 0 );
 			break;
 		case 'D':
 		case 'U':
@@ -73,11 +67,7 @@ setup(int argc, char **argv)
 	fp = "<stdin>";
 	fd = stdin;
 	if (optind<argc) {
-		if ((fp = strrchr(argv[optind], '/')) != NULL) {
-			int len = fp - argv[optind];
-			dp = (char*)newstring((uchar*)argv[optind], len+1, 0);
-			dp[len] = '\0';
-		}
+		dp = basepath( argv[optind] );
 		fp = (char*)newstring((uchar*)argv[optind], strlen(argv[optind]), 0);
 		if ((fd = fopen(fp, "r")) == NULL)
 			error(FATAL, "Can't open input file %s", fp);
@@ -91,10 +81,25 @@ setup(int argc, char **argv)
 		setobjname(fp);
 	includelist[NINCLUDE-1].always = 0;
 	includelist[NINCLUDE-1].file = dp;
+
+	for( i = 0; i < numIncludeDirs; i++ )
+		appendDirToIncludeList( (char *)includeDirs[ i ] );
+
 	setsource(fp, fd, NULL);
 }
 
+char *basepath( char *fname )
+{
+	char *dp = ".";
+	char *p;
+	if ((p = strrchr(fname, '/')) != NULL) {
+		int dlen = p - fname;
+		dp = (char*)newstring((uchar*)fname, dlen+1, 0);
+		dp[dlen] = '\0';
+	}
 
+	return dp;
+}
 
 /* memmove is defined here because some vendors don't provide it at
    all and others do a terrible job (like calling malloc) */

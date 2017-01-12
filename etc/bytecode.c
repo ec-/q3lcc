@@ -21,11 +21,41 @@ char *com[] = { "q3rcc" BINEXT, "-target=bytecode", "$1", "$2", "$3", NULL };
 
 extern char *concat( char *, char * );
 
+/*
+===============
+updatePaths
+
+Updates the paths to q3cpp and q3rcc based on
+the directory that contains q3lcc
+===============
+*/
+void updatePaths( const char *lccBinary )
+{
+	char basepath[ 1024 ];
+	char *p;
+
+	strncpy( basepath, lccBinary, sizeof( basepath ) );
+	p = strrchr( basepath, PATH_SEP );
+
+	if( p )
+	{
+		*( p + 1 ) = '\0';
+
+		cpp[ 0 ] = concat( basepath, "q3cpp" BINEXT );
+		com[ 0 ] = concat( basepath, "q3rcc" BINEXT );
+	}
+	//printf( "%s\n%s\n%s\n", lccBinary, cpp[0], com[0] );
+}
+
 int option( char *arg ) {
 	if (strncmp(arg, "-lccdir=", 8) == 0) {
 		cpp[0] = concat( &arg[8], "/q3cpp" BINEXT );
 		include[0] = concat("-I", concat(&arg[8], "/include"));
 		com[0] = concat( &arg[8], "/q3rcc" BINEXT );
+	} else if (strncmp(arg, "-lcppdir=", 9) == 0) {
+		cpp[0] = concat(&arg[9], "/q3cpp" BINEXT);
+	} else if (strncmp(arg, "-lrccdir=", 9) == 0) {
+		com[0] = concat(&arg[9], "/q3rcc" BINEXT);
 	} else if (strcmp(arg, "-p") == 0 || strcmp(arg, "-pg") == 0) {
 		fprintf( stderr, "no profiling supported, %s ignored.\n", arg);
 	} else if (strcmp(arg, "-b") == 0)

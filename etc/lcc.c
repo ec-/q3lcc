@@ -77,10 +77,15 @@ char *tempdir = TEMPDIR;	/* directory for temporary files */
 static char *progname;
 static List lccinputs;		/* list of input directories */
 
+extern void updatePaths( const char *lccBinary );
+
 int main(int argc, char *argv[]) {
 	int i, j, nf;
 	
 	progname = argv[0];
+
+	updatePaths( progname );
+
 	ac = argc + 50;
 	av = alloc(ac*sizeof(char *));
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)

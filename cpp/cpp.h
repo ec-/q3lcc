@@ -109,6 +109,7 @@ void	control(Tokenrow *);
 void	dodefine(Tokenrow *);
 void	doadefine(Tokenrow *, int);
 void	doinclude(Tokenrow *);
+void	appendDirToIncludeList( char *dir );
 void	doif(Tokenrow *, enum kwtype);
 void	expand(Tokenrow *, Nlist *);
 void	builtin(Tokenrow *, int);
@@ -140,6 +141,8 @@ int	unionhideset(int, int);
 void	iniths(void);
 void	setobjname(char *);
 #define	rowlen(tokrow)	((tokrow)->lp - (tokrow)->bp)
+
+char 	*basepath( char *fname );
 
 extern	char *out_p;
 extern	Token	nltoken;
