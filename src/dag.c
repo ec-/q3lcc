@@ -64,6 +64,15 @@ static Node node(int op, Node l, Node r, Symbol sym) {
 	++nodecount;
 	return &p->node;
 }
+
+static Node constnode( int op, Symbol sym ) {
+	int i;
+	struct dag *p;
+	p = dagnode( op, NULL, NULL, sym );
+	++nodecount;
+	return &p->node;
+}
+
 static struct dag *dagnode(int op, Node l, Node r, Symbol sym) {
 	struct dag *p;
 
@@ -172,7 +181,12 @@ Node listnodes(Tree tp, int tlab, int flab) {
 		      else if (ty->u.sym->addressed)
 		      	p = listnodes(cvtconst(tp), 0, 0);
 		      else
-		      	p = node(op, NULL, NULL, constant(ty, tp->u.v)); } break;
+				/* always generate new node for constants */
+				if ( isscalar( ty ) )
+					p = constnode( op, constant( ty, tp->u.v ) );
+				else
+					p = node(op, NULL, NULL, constant(ty, tp->u.v)); 
+			} break;
 	case RIGHT: { if (   tp->kids[0] && tp->kids[1]
 			  &&  generic(tp->kids[1]->op) == ASGN
 			  && (generic(tp->kids[0]->op) == INDIR
