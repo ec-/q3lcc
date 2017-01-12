@@ -1,6 +1,5 @@
 #include "c.h"
 
-static char rcsid[] = "$Id$";
 
 static int curseg;		/* current segment */
 
@@ -95,7 +94,7 @@ static int initchar(int len, Type ty) {
 	char buf[16], *s = buf;
 
 	do {
-		*s++ = initvalue(ty)->u.v.i;
+		*s++ = (char)(initvalue(ty)->u.v.i);
 		if (++n%inttype->size == 0) {
 			(*IR->defstring)(inttype->size, buf);
 			s = buf;

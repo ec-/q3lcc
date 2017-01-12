@@ -1,6 +1,5 @@
 #include "c.h"
 
-static char rcsid[] = "$Id$";
 
 int where = STMT;
 static int warn;

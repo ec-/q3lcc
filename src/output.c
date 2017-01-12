@@ -1,6 +1,5 @@
 #include "c.h"
 
-static char rcsid[] = "$Id$";
 
 static char *outs(const char *str, FILE *f, char *bp) {
 	if (f)
@@ -21,7 +20,7 @@ static char *outd(long n, FILE *f, char *bp) {
 	else
 		m = n;
 	do
-		*--s = m%10 + '0';
+		*--s = (char)(m%10 + '0');
 	while ((m /= 10) != 0);
 	if (n < 0)
 		*--s = '-';

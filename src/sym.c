@@ -1,7 +1,6 @@
 #include "c.h"
 #include <stdio.h>
 
-static char rcsid[] = "$Id$";
 
 #define equalp(x) v.x == p->sym.u.c.v.x
 

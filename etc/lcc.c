@@ -11,6 +11,12 @@ static char rcsid[] = "$Id$";
 #include <assert.h>
 #include <ctype.h>
 #include <signal.h>
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <io.h>
+#endif
+#include <fcntl.h>
 
 #ifndef TEMPDIR
 #define TEMPDIR "/tmp"
@@ -47,15 +53,15 @@ extern char *stringf(const char *, ...);
 extern int suffix(char *, char *[], int);
 extern char *tempname(char *);
 
-extern int access(char *, int);
+extern int access(const char *, int);
 extern int getpid(void);
 
-extern char *cpp[], *include[], *com[], *as[],*ld[], inputs[], *suffixes[];
+extern char *cpp[], *include[], *com[], inputs[], *suffixes[];
 extern int option(char *);
 
 static int errcnt;		/* number of errors */
 static int Eflag;		/* -E specified */
-static int Sflag;		/* -S specified */
+static int Sflag = 1;   /* -S specified */ // for Q3 - we always generate asm
 static int cflag;		/* -c specified */
 static int verbose;		/* incremented for each -v */
 static List llist[2];		/* loader files, flags */
@@ -71,7 +77,7 @@ char *tempdir = TEMPDIR;	/* directory for temporary files */
 static char *progname;
 static List lccinputs;		/* list of input directories */
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	int i, j, nf;
 	
 	progname = argv[0];
@@ -158,12 +164,6 @@ main(int argc, char *argv[]) {
 			} else
 				error("can't find `%s'", argv[i]);
 		}
-	if (errcnt == 0 && !Eflag && !Sflag && !cflag && llist[1]) {
-		compose(ld, llist[0], llist[1],
-			append(outfile ? outfile : concat("a", first(suffixes[4])), 0));
-		if (callsys(av))
-			errcnt++;
-	}
 	rm(rmlist);	
 	return errcnt ? EXIT_FAILURE : EXIT_SUCCESS;
 }
@@ -211,7 +211,7 @@ char *basepath(char *name) {
 	return s;
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <process.h>
 #else
 #define _P_WAIT 0
@@ -353,7 +353,9 @@ static void error(char *fmt, char *msg) {
 /* exists - if `name' readable return its path name or return null */
 static char *exists(char *name) {
 	List b;
-
+#ifdef _MSC_VER // fix ms compiler warnings
+#define access _access
+#endif
 	if ( (name[0] == '/' || name[0] == '\\' || name[2] == ':')
 	&& access(name, 4) == 0)
 		return name;
@@ -372,6 +374,9 @@ static char *exists(char *name) {
 	if (verbose > 1)
 		return name;
 	return 0;
+#ifdef _MSC_VER
+#undef access
+#endif
 }
 
 /* first - return first component in semicolon separated list */
@@ -417,21 +422,6 @@ static int filename(char *name, char *base) {
 			return filename(stemp, base);
 		break;
 	case 2:	/* assembly language files */
-		if (Eflag)
-			break;
-		if (!Sflag) {
-			char *ofile;
-			if (cflag && outfile)
-				ofile = outfile;
-			else if (cflag)
-				ofile = concat(base, first(suffixes[3]));
-			else
-				ofile = tempname(first(suffixes[3]));
-			compose(as, alist, append(name, 0), append(ofile, 0));
-			status = callsys(av);
-			if (!find(ofile, llist[1]))
-				llist[1] = append(ofile, llist[1]);
-		}
 		break;
 	case 3:	/* object files */
 		if (!find(name, llist[1]))
@@ -523,7 +513,7 @@ static void help(void) {
 /* initinputs - if LCCINPUTS or include is defined, use them to initialize various lists */
 static void initinputs(void) {
 	char *s = getenv("LCCINPUTS");
-	List list, b;
+	List b;
 
 	if (s == 0 && (s = inputs)[0] == 0)
 		s = ".";
@@ -808,7 +798,11 @@ int suffix(char *name, char *tails[], int n) {
 /* tempname - generate a temporary file name in tempdir with given suffix */
 char *tempname(char *suffix) {
 	static int n;
+#ifdef _WIN32
+	char *name = stringf("%s/lcc%d%d%s", tempdir, _getpid(), n++, suffix);
+#else
 	char *name = stringf("%s/lcc%d%d%s", tempdir, getpid(), n++, suffix);
+#endif
 
 	if (strstr(com[1], "win32") != NULL)
 		name = replace(name, '/', '\\');

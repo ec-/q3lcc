@@ -1,4 +1,3 @@
-/* $Id$ */
 typedef struct {
 	unsigned char max_unaligned_load;
 	Symbol (*rmap)(int);

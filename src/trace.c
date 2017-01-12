@@ -1,6 +1,5 @@
 #include "c.h"
 
-static char rcsid[] = "$Id$";
 
 static char *fmt, *fp, *fmtend;	/* format string, current & limit pointer */
 static Tree args;		/* printf arguments */

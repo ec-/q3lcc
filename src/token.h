@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
 xx(symbol,	value,	prec,	op,	optree,	kind,	string)
 */

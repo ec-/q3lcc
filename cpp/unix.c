@@ -4,6 +4,12 @@
 #include <string.h>
 #include "cpp.h"
 
+#ifdef _WIN32
+#include <io.h>
+#include <sys/stat.h>
+#include <share.h>
+#endif
+
 extern	int getopt(int, char *const *, const char *);
 extern	char	*optarg, rcsid[];
 extern	int	optind;

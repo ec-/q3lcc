@@ -13,7 +13,6 @@ prof.out format:
 */
 #include "c.h"
 
-static char rcsid[] = "$Id$";
 
 struct count {			/* count data: */
 	int x, y;			/* source coordinate */

@@ -1,7 +1,6 @@
 #include "c.h"
 #define I(f) b_##f
 
-static char rcsid[] = "$Id$";
 
 static void I(segment)(int n) {
 	static int cseg;
@@ -41,7 +40,7 @@ static void I(defconst)(int suffix, int size, Value v) {
 	case P: print("byte %d %U\n", size, (unsigned long)v.p); return;
 	case F:
 		if (size == 4) {
-			float f = v.d;
+			float f = (float)v.d;
 			print("byte 4 %u\n", *(unsigned *)&f);
 		} else {
 			double d = v.d;
@@ -67,6 +66,14 @@ static void I(defsymbol)(Symbol p) {
 		case I: p->x.name = stringf("%D", p->u.c.v.i); break;
 		case U: p->x.name = stringf("%U", p->u.c.v.u); break;
 		case P: p->x.name = stringf("%U", p->u.c.v.p); break;
+		case F:
+			{	// JDC: added this to get inline floats
+				unsigned temp;
+
+				*(float *)&temp = (float)p->u.c.v.d;
+				p->x.name = stringf("%U", temp );
+			}
+			break;// JDC: added this
 		default: assert(0);
 		}
 	else if (p->scope >= LOCAL && p->sclass == STATIC)
@@ -119,6 +126,7 @@ static void dumptree(Node p) {
 		assert(optype(p->op) != B);
 		dumptree(p->kids[0]);
 		print("%s\n", opname(p->op));
+		if ( !p->count ) { printf("pop\n"); };	// JDC
 		return;
 	case ASGN: case BOR: case BAND: case BXOR: case RSH: case LSH:
 	case ADD: case SUB: case DIV: case MUL: case MOD:
@@ -221,6 +229,72 @@ static void I(space)(int n) {
 	print("skip %d\n", n);
 }
 
+//========================================================
+
+// JDC: hacked up to get interleaved source lines in asm code
+static char	*sourceFile;
+static char *sourcePtr;
+static int sourceLine;
+
+static int filelength( FILE *f ) {
+	int		pos;
+	int		end;
+
+	pos = ftell (f);
+	fseek (f, 0, SEEK_END);
+	end = ftell (f);
+	fseek (f, pos, SEEK_SET);
+
+	return end;
+}
+
+static void LoadSourceFile( const char *filename ) {
+	FILE	*f;
+	int		length;
+
+	f = fopen( filename, "r" );
+	if ( !f ) {
+		print( ";couldn't open %s\n", filename );
+		sourceFile = NULL;
+		return;
+	}
+	length = filelength( f );
+	sourceFile = malloc( length + 1 );
+	if ( sourceFile ) {
+		fread( sourceFile, length, 1, f );
+		sourceFile[length] = 0;
+	}
+
+	fclose( f );
+	sourceLine = 1;
+	sourcePtr = sourceFile;
+}
+
+static void PrintToSourceLine( int line ) {
+	int		c;
+
+	if ( !sourceFile ) {
+		return;
+	}
+	while ( sourceLine <= line ) {
+		int		i;
+
+		for ( i = 0 ; sourcePtr[i] && sourcePtr[i] != '\n' ; i++ ) {
+		}
+		c = sourcePtr[i];
+		if ( c == '\n' ) {
+			sourcePtr[i] = 0;
+		}
+		print( ";%d:%s\n", sourceLine, sourcePtr );
+		if ( c == 0 ) {
+			sourcePtr += i;	// end of file
+		} else {
+			sourcePtr += i+1;
+		}
+		sourceLine++;
+	}
+}
+
 static void I(stabline)(Coordinate *cp) {
 	static char *prevfile;
 	static int prevline;
@@ -228,10 +302,20 @@ static void I(stabline)(Coordinate *cp) {
 	if (cp->file && (prevfile == NULL || strcmp(prevfile, cp->file) != 0)) {
 		print("file \"%s\"\n", prevfile = cp->file);
 		prevline = 0;
+		if ( sourceFile ) {
+			free( sourceFile );
+			sourceFile = NULL;
+		}
+		// load the new source file
+		LoadSourceFile( cp->file );
 	}
-	if (cp->y != prevline)
+	if (cp->y != prevline) {
 		print("line %d\n", prevline = cp->y);
+		PrintToSourceLine( cp->y );
+	}
 }
+
+//========================================================
 
 #define b_blockbeg blockbeg
 #define b_blockend blockend
@@ -242,9 +326,9 @@ Interface bytecodeIR = {
 	4, 4, 0,	/* int */
 	4, 4, 0,	/* long */
 	4, 4, 0,	/* long long */
-	4, 4, 1,	/* float */
-	8, 8, 1,	/* double */
-	8, 8, 1,	/* long double */
+	4, 4, 0,	/* float */           // JDC: use inline floats
+	4, 4, 0,	/* double */          // JDC: don't ever emit 8 byte double code
+	4, 4, 0,	/* long double */     // JDC: don't ever emit 8 byte double code
 	4, 4, 0,	/* T* */
 	0, 4, 0,	/* struct */
 	0,		/* little_endian */

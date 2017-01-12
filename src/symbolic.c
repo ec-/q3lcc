@@ -3,7 +3,6 @@
 #include "c.h"
 
 #define I(f) s_##f
-static char rcsid[] = "$Id$";
 
 static Node *tail;
 static int off, maxoff, uid = 0, verbose = 0, html = 0;

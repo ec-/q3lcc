@@ -1,13 +1,12 @@
 #include "c.h"
 #include <float.h>
 
-static char rcsid[] = "$Id$";
 
 static Field isfield(const char *, Field);
 static Type type(int, Type, int, int, void *);
 
 static struct entry {
-	struct type type;
+	struct type_s type;
 	struct entry *link;
 } *typetable[128];
 static int maxlevel;

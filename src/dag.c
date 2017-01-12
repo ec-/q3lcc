@@ -1,6 +1,5 @@
 #include "c.h"
 
-static char rcsid[] = "$Id$";
 
 #define iscall(op) (generic(op) == CALL \
 	|| IR->mulops_calls \

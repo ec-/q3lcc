@@ -1,7 +1,6 @@
 #include "c.h"
 #include <float.h>
 
-static char rcsid[] = "$Id$";
 
 #define foldcnst(TYPE,VAR,OP) \
 	if (l->op == CNST+TYPE && r->op == CNST+TYPE) \
@@ -257,7 +256,7 @@ Tree simplify(int op, Type ty, Tree l, Tree r) {
 			xcvtcnst(F,l->u.v.d,ty,i,(long)l->u.v.d);
 			break;
 		case CVF+F: {
-			float d;
+			float d = 0.0;
 			if (l->op == CNST+F)
 				if (l->u.v.d < ty->u.sym->u.limits.min.d)
 					d = ty->u.sym->u.limits.min.d;

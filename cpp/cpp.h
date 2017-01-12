@@ -1,4 +1,3 @@
-/* $Id$ */
 #include <stdio.h>
 #define	INS	32768		/* input buffer */
 #define	OBS	4096		/* outbut buffer */
@@ -142,7 +141,7 @@ void	iniths(void);
 void	setobjname(char *);
 #define	rowlen(tokrow)	((tokrow)->lp - (tokrow)->bp)
 
-extern	char *outp;
+extern	char *out_p;
 extern	Token	nltoken;
 extern	Source *cursource;
 extern	char *curtime;

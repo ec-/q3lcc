@@ -86,9 +86,10 @@ typedef union value {
 	void *p;
 	void (*g)(void);
 } Value;
-typedef struct tree *Tree;
 
-typedef struct type *Type;
+typedef struct tree_s *Tree;
+
+typedef struct type_s *Type;
 
 typedef struct field *Field;
 
@@ -303,7 +304,7 @@ struct symbol {
 	Xsymbol x;
 };
 enum { CONSTANTS=1, LABELS, GLOBAL, PARAM, LOCAL };
-struct tree {
+struct tree_s {
 	int op;
 	Type type;
 	Tree kids[2];
@@ -323,7 +324,7 @@ enum {
 	RIGHT=42<<4,
 	FIELD=43<<4
 };
-struct type {
+struct type_s {
 	int op;
 	Type type;
 	int align;
