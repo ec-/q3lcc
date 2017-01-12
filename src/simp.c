@@ -205,7 +205,6 @@ int intexpr(int tok, int n) {
 }
 Tree simplify(int op, Type ty, Tree l, Tree r) {
 	int n;
-	Tree p;
 
 	if (optype(op) == 0)
 		op = mkop(op, ty);
@@ -402,6 +401,9 @@ Tree simplify(int op, Type ty, Tree l, Tree r) {
 			break;
 		case DIV+F:
 			xfoldcnst(F,d,/,divd);
+			identity(r,l,F,d,1.0); /* x/1.0 => x */
+			if ( r->op == CNST+F && r->u.v.d != 0.0 ) /* x/c => x * 1/c */
+				return simplify(MUL,ty,l,cnsttree(floattype,1.0/r->u.v.d));
 			break;
 		case DIV+I:
 			identity(r,l,I,i,1);
@@ -500,6 +502,18 @@ Tree simplify(int op, Type ty, Tree l, Tree r) {
 			break;
 		case MUL+F:
 			xfoldcnst(F,d,*,muld);
+			identity(r,l,F,d,1.0); /* x * 1.0 => x */
+			/* x * c1 * c2 => x * (c1*c2) */
+			if ( r->op == CNST+F && l->op == MUL+F && l->kids[0]->op == CNST+F ) {
+				/* print overflow warning if any */
+				muld( l->kids[0]->u.v.d, r->u.v.d, 
+						ty->u.sym->u.limits.min.d,
+						ty->u.sym->u.limits.max.d, 1 );
+				l->kids[0]->u.v.d *= r->u.v.d;
+				if ( l->kids[0]->u.v.d == 1.0 && l->kids[1] ) /* x * 1.0 => x */
+					return l->kids[1];
+				return l;
+			}
 			commute(l,r);
 			break;
 		case MUL+I:
