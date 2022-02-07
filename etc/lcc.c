@@ -222,7 +222,7 @@ char *basepath(char *name) {
 #define _P_WAIT 0
 extern int fork(void);
 extern int wait(int *);
-extern void execv(const char *, char *[]);
+/*extern void execv(const char *, char *[]);*/
 
 static int _spawnvp(int mode, const char *cmdname, const char *const argv[]) {
 	int pid, n, status;
