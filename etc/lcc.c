@@ -232,7 +232,7 @@ static int _spawnvp(int mode, const char *cmdname, const char *const argv[]) {
 		fprintf(stderr, "%s: no more processes\n", progname);
 		return 100;
 	case 0:
-		execv(cmdname, (char **)argv);
+		execvp(cmdname, (char **)argv);
 		fprintf(stderr, "%s: ", progname);
 		perror(cmdname);
 		fflush(stdout);
