@@ -91,6 +91,7 @@ enum errtype { WARNING, ERROR, FATAL };
 void	expandlex(void);
 void	fixlex(void);
 void	setup(int, char **);
+void    setup_kwtab();
 int	gettokens(Tokenrow *, int);
 int	comparetokens(Tokenrow *, Tokenrow *);
 Source	*setsource(char *, FILE *, char *);
